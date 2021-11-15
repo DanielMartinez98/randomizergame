@@ -5,17 +5,18 @@ from pygame import math
 
 pygame.init()
 spaces = 100
-data = [[0]*spaces for _ in range(spaces)]    
+data = [[0] *spaces for _ in range(spaces)]    
 datachange = copy.deepcopy(data)
 whilecount = 0
 #mapFunct
 wallprob = 1
 def generateMap():
+    check = 0
     arr = [[0]*spaces for _ in range(spaces)]
     newseed = random.randrange(0,10000)
     #3print(newseed)    
     noise = perlin.perlin(newseed)
-    noise.two_octave(10,10)
+    noise.two_octave(100000,1000000)
     noise = perlin.perlin(newseed)
     if noise.two(0,0)>wallprob or noise.two(spaces-1,spaces-1)>wallprob:
         return generateMap()
@@ -24,8 +25,12 @@ def generateMap():
             #print(noise.two(i,y))
             if noise.two(i,y) >wallprob:
                 arr[i][y] = 1
+                check +=1
             if noise.two(i,y)>wallprob*4:
                 arr[i][y] = 7
+                check += 1
+    if check < spaces*spaces/4:
+        return generateMap()
     return arr         
 def clearData():
     global data
@@ -60,20 +65,21 @@ newPlayerImg = pygame.transform.scale(playerImg,(sizex/spaces,sizey/spaces))
 class advanceMap(threading.Thread):
     def __init__(self,i):
         threading.Thread.__init__(self)
-        self.i = i
+        self.m = i
         #print(i)
         global spaces
         
     def run(self,j):
+        #print(i)
+        i = self.m
         global whilecount
         global data
         global datachange
         if j == 0:
             for y in range(0,spaces):
                 check = True
-                if data[i][y] != 0 and data[i][y]<3:
-                    if i != spaces-1 and check :
-                        print("a")
+                if data[i][y] != 0 and data[i][y]<3 and data[i][y]:
+                    if i != spaces-1:
                         if random.randint(0,1)==True and datachange[i+1][y]!= data[i][y]:
                             if datachange[i+1][y]>=3 and datachange[i+1][y]!=6:
                                 if datachange[i+1][y]==7:
@@ -117,7 +123,7 @@ class advanceMap(threading.Thread):
             for y in range(spaces-1,0,-1):
                 check = True
                 if data[i][y] != 0 and data[i][y]<3:
-                    if i != spaces-1 and check :
+                    if i != spaces-1:
                         if random.randint(0,1)==True and datachange[i+1][y]!= data[i][y]:
                             if datachange[i+1][y]>=3 and datachange[i+1][y]!=6:
                                 if datachange[i+1][y]==7:
@@ -158,6 +164,14 @@ class advanceMap(threading.Thread):
                                 datachange[i][y-1]= data[i][y]
                             check = False
         whilecount+= 1
+    def checa():
+        
+        for y in range(0,spaces):
+            if data[i][y]!= spaces:
+                if data[i][y]== data[i+1][y]:
+                    data
+
+
 def player(a,b):
     screen.blit(newPlayerImg,(a,b))
 arr = []
@@ -167,25 +181,29 @@ for i in range(0,spaces):
 running = True
 counta = 0
 countb = 0
-
+pygame.font.init()
+myfont = pygame.font.SysFont('Comic Sans MS', 20)
+textsurface = myfont.render("Hello my name is minecraft steve", False, (250, 250, 250))
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
     data = copy.deepcopy(datachange)
+    
     if random.randint(0,1)==True:
         counta +=1
-        for x in arr:
-            x.run(0)
+        for x in range(0,spaces):
+            arr[x].run(0)
     else:
         countb +=1
-        for x in reversed(arr):
-            x.run(1)
+        for x in (range(spaces-1,0,-1)):
+            arr[x].run(1)
     contr = 0
     contb = 0
-    while(whilecount != spaces):
+    while(whilecount < spaces-1):
         print("yo",whilecount)
     whilecount = 0
+    screen.fill((0,0,0))
     for i in range(0,spaces):
         for y in range(0,spaces):
             if data[i][y] ==1:
@@ -209,9 +227,10 @@ while running:
             # Check for backspace
             if event.key == pygame.K_BACKSPACE:
                 clearData()
-                
-                screen.fill((0,0,0))                
-
-                
+                screen.fill((0,0,0))
+    
+    textsurface = myfont.render("Red: "+str(contr)+" Blue: "+ str(contb), False, (250, 250, 250))       
+    screen.blit(textsurface,(0,sizey+10))
     pygame.display.update()
+    
     

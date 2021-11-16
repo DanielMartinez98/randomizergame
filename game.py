@@ -4,10 +4,11 @@ import perlin
 from pygame import math
 
 pygame.init()
-spaces = 100
+spaces = 90
 data = [[0] *spaces for _ in range(spaces)]
 dataprev = copy.deepcopy(data)
 datachange = copy.deepcopy(data)
+newseed = 0
 whilecount = 0
 moneyr,moneyb = 0,0
 #mapFunct
@@ -16,25 +17,28 @@ sprites = []
 
     
 def generateMap():
+    global newseed
     check = 0
     arr = [[0]*spaces for _ in range(spaces)]
     newseed = random.randrange(0,10000)
     #3print(newseed)    
     noise = perlin.perlin(newseed)
-    noise.two_octave(100000,1000000)
+    noise.two_octave(1,1)
     noise = perlin.perlin(newseed)
-    if noise.two(0,0)>wallprob or noise.two(spaces-1,spaces-1)>wallprob:
+    
+    if noise.two(0,0)>wallprob or noise.two(spaces-1,spaces-1)>wallprob or (noise.two(0,0)<-wallprob or noise.two(spaces-1,spaces-1)<-wallprob):
         print("dang")
         return generateMap()
     for i in range(0,spaces):
         for y in range(0,spaces):
             #print(noise.two(i,y))
-            if noise.two(i,y) >wallprob:
+            #print(noise.two(i,y))
+            if noise.two(i,y) >wallprob or noise.two(i,y) <-wallprob:
                 arr[i][y] = 1
-            if noise.two(i,y)>wallprob*4:
+            if noise.two(i,y)>wallprob*4 or noise.two(i,y) <-wallprob*4:
                 arr[i][y] = 7
                 check += 1
-    if check < spaces*spaces/6:
+    if check < spaces*spaces/8:
         print("not even close")
         return generateMap()
     return arr         
@@ -318,7 +322,7 @@ while running:
     moneyr +=3
     moneyb +=3
 
-    textsurface = myfont.render(f"Red: {moneyr} Blue: {moneyb}", False, (250, 250, 250))       
+    textsurface = myfont.render(f"Seed: {newseed} Red: {moneyr} Blue: {moneyb}", False, (250, 250, 250))       
     screen.blit(textsurface,(0,sizey+10))
     if spaces<100:
         time.sleep(0.1)

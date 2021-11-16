@@ -5,11 +5,16 @@ from pygame import math
 
 pygame.init()
 spaces = 100
-data = [[0] *spaces for _ in range(spaces)]    
+data = [[0] *spaces for _ in range(spaces)]
+dataprev = copy.deepcopy(data)
 datachange = copy.deepcopy(data)
 whilecount = 0
+moneyr,moneyb = 0,0
 #mapFunct
 wallprob = 1
+sprites = []
+
+    
 def generateMap():
     check = 0
     arr = [[0]*spaces for _ in range(spaces)]
@@ -19,17 +24,18 @@ def generateMap():
     noise.two_octave(100000,1000000)
     noise = perlin.perlin(newseed)
     if noise.two(0,0)>wallprob or noise.two(spaces-1,spaces-1)>wallprob:
+        print("dang")
         return generateMap()
     for i in range(0,spaces):
         for y in range(0,spaces):
             #print(noise.two(i,y))
             if noise.two(i,y) >wallprob:
                 arr[i][y] = 1
-                check +=1
             if noise.two(i,y)>wallprob*4:
                 arr[i][y] = 7
                 check += 1
-    if check < spaces*spaces/4:
+    if check < spaces*spaces/6:
+        print("not even close")
         return generateMap()
     return arr         
 def clearData():
@@ -55,125 +61,202 @@ clearData()
 sizex,sizey, id,pth = 1000,1000, 1, os.path.dirname(__file__)
 screen = pygame.display.set_mode((sizex,sizey+50))
 #Title and Icon
-pygame.display.set_caption("Space Invaders")
+pygame.display.set_caption("COCA Vs Bepis")
 icon = pygame.image.load(pth+'\\assets\\'+str(id)+'.png')
 pygame.display.set_icon(icon)
 #Player
-print("the path: "+pth+"\\assets\player.png")
-playerImg = pygame.image.load(pth+'\\assets\\'+str(id)+'.png')
-newPlayerImg = pygame.transform.scale(playerImg,(sizex/spaces,sizey/spaces))
+for i in range(1,11):
+    playerImg = pygame.image.load(pth+'\\assets\\'+str(i)+'.png')
+    newPlayerImg = pygame.transform.scale(playerImg,(sizex/spaces+1,sizey/spaces+1))
+    sprites.append(newPlayerImg)
 class advanceMap(threading.Thread):
     def __init__(self,i):
         threading.Thread.__init__(self)
         self.m = i
         #print(i)
         global spaces
-        
     def run(self,j):
         #print(i)
         i = self.m
+        global moneyr
+        global moneyb
         global whilecount
         global data
         global datachange
         if j == 0:
             for y in range(0,spaces):
+                counter = 0
                 check = True
-                if data[i][y] != 0 and data[i][y]<3 and data[i][y]:
+                if dataprev[i][y] > 0 and dataprev[i][y]<3:
                     if i != spaces-1:
-                        if random.randint(0,1)==True and datachange[i+1][y]!= data[i][y]:
+                        if random.randint(0,1)==True and datachange[i+1][y]!= dataprev[i][y]:
                             if datachange[i+1][y]>=3 and datachange[i+1][y]!=6:
                                 if datachange[i+1][y]==7:
-                                    datachange[i+1][y]=data[i][y]
+                                    datachange[i+1][y]=dataprev[i][y]
+                                    data[i+1][y]= dataprev[i][y]
+                                    if dataprev[i][y] == 1:
+                                        moneyr +=100
+                                    else:
+                                        moneyb +=100
                                 else:
                                     datachange[i+1][y] +=1
                             else:
-                                datachange[i+1][y]= data[i][y]
+                                datachange[i+1][y]= dataprev[i][y]
+                                data[i+1][y]= dataprev[i][y]
                             check = False
-                    if i != 0 and check:
-                        if random.randint(0,1)==True and datachange[i-1][y]!= data[i][y]:
+                        if datachange[i+1][y]==datachange[i][y]:
+                            counter+=1
+                    else: counter+=1
+                    if i != 0 :
+                        if random.randint(0,1)==True and datachange[i-1][y]!= dataprev[i][y] and check:
                             if datachange[i-1][y]>=3 and datachange[i-1][y]!=6:
                                 if datachange[i-1][y]==7:
-                                    datachange[i-1][y]=data[i][y]
+                                    datachange[i-1][y]=dataprev[i][y]
+                                    data[i-1][y]= dataprev[i][y]
+                                    if dataprev[i][y] == 1:
+                                        moneyr +=100
+                                    else:
+                                        moneyb +=100
                                 else:
                                     datachange[i-1][y] +=1
                             else:
-                                datachange[i-1][y]= data[i][y]
+                                datachange[i-1][y]= dataprev[i][y]
+                                data[i-1][y]= dataprev[i][y]
                             check = False
-                    if y != spaces-1 and check:
-                        if random.randint(0,1)==True and datachange[i][y+1]!= data[i][y]:
+                        if datachange[i-1][y]==datachange[i][y]:
+                            counter+=1
+                    else: counter+=1
+                    if y != spaces-1 :
+                        if random.randint(0,1)==True and datachange[i][y+1]!= dataprev[i][y] and check:
                             if datachange[i][y+1]>=3 and datachange[i][y+1]!=6:
                                 if datachange[i][y+1]==7:
-                                    datachange[i][y+1]=data[i][y]
+                                    datachange[i][y+1]=dataprev[i][y]
+                                    data[i][y+1]= dataprev[i][y]
+                                    if dataprev[i][y] == 1:
+                                        moneyr +=100
+                                    else:
+                                        moneyb +=100
                                 else:
                                     datachange[i][y+1] +=1
                             else:
-                                datachange[i][y+1]= data[i][y]
+                                datachange[i][y+1]= dataprev[i][y]
+                                data[i][y+1]= dataprev[i][y]
                             check = False
-                    if y != 0 and check:
-                        if random.randint(0,1)==True and datachange[i][y-1]!= data[i][y]:
+                        if datachange[i][y+1]==datachange[i][y]:
+                            counter+=1
+                    else: counter+=1
+                    if y != 0 :
+                        if random.randint(0,1)==True and datachange[i][y-1]!= dataprev[i][y] and check:
                             if datachange[i][y-1]>=3 and datachange[i][y-1]!=6:
                                 if datachange[i][y-1]==7:
-                                    datachange[i][y-1]=data[i][y]
+                                    datachange[i][y-1]=dataprev[i][y]
+                                    data[i][y-1]= dataprev[i][y]
+                                    if dataprev[i][y] == 1:
+                                        moneyr +=100
+                                    else:
+                                        moneyb +=100
                                 else:
                                     datachange[i][y-1] +=1
                             else:
-                                datachange[i][y-1]= data[i][y]
+                                datachange[i][y-1]= dataprev[i][y]
+                                data[i][y-1]= dataprev[i][y]
                             check = False
+                        if datachange[i][y-1]==datachange[i][y]:
+                            counter+=1
+                    else: counter+=1
+                if counter == 4:
+                    data[i][y]=0
         else:
             for y in range(spaces-1,0,-1):
+                counter = 0
                 check = True
-                if data[i][y] != 0 and data[i][y]<3:
+                if dataprev[i][y] > 0 and dataprev[i][y]<3:
                     if i != spaces-1:
-                        if random.randint(0,1)==True and datachange[i+1][y]!= data[i][y]:
+                        if random.randint(0,1)==True and datachange[i+1][y]!= dataprev[i][y]:
                             if datachange[i+1][y]>=3 and datachange[i+1][y]!=6:
                                 if datachange[i+1][y]==7:
-                                    datachange[i+1][y]=data[i][y]
+                                    datachange[i+1][y]=dataprev[i][y]
+                                    data[i+1][y]= dataprev[i][y]
+                                    if dataprev[i][y] == 1:
+                                        moneyr +=100
+                                    else:
+                                        moneyb +=100
                                 else:
                                     datachange[i+1][y] +=1
                             else:
-                                datachange[i+1][y]= data[i][y]
+                                datachange[i+1][y]= dataprev[i][y]
+                                data[i+1][y]= dataprev[i][y]
                             check = False
-                    if i != 0 and check:
-                        if random.randint(0,1)==True and datachange[i-1][y]!= data[i][y]:
+                        if datachange[i+1][y]==datachange[i][y]:
+                            counter+=1
+                    else: counter+=1
+                    if i != 0 :
+                        if random.randint(0,1)==True and datachange[i-1][y]!= dataprev[i][y] and check:
                             if datachange[i-1][y]>=3 and datachange[i-1][y]!=6:
                                 if datachange[i-1][y]==7:
-                                    datachange[i-1][y]=data[i][y]
+                                    datachange[i-1][y]=dataprev[i][y]
+                                    data[i-1][y]= dataprev[i][y]
+                                    if dataprev[i][y] == 1:
+                                        moneyr +=100
+                                    else:
+                                        moneyb +=100
                                 else:
                                     datachange[i-1][y] +=1
                             else:
-                                datachange[i-1][y]= data[i][y]
+                                datachange[i-1][y]= dataprev[i][y]
+                                data[i-1][y]= dataprev[i][y]
                             check = False
-                    if y != spaces-1 and check:
-                        if random.randint(0,1)==True and datachange[i][y+1]!= data[i][y]:
+                        if datachange[i-1][y]==datachange[i][y]:
+                            counter+=1
+                    else: counter+=1
+                    if y != spaces-1 :
+                        if random.randint(0,1)==True and datachange[i][y+1]!= dataprev[i][y] and check:
                             if datachange[i][y+1]>=3 and datachange[i][y+1]!=6:
                                 if datachange[i][y+1]==7:
-                                    datachange[i][y+1]=data[i][y]
+                                    datachange[i][y+1]=dataprev[i][y]
+                                    data[i][y+1]= dataprev[i][y]
+                                    if dataprev[i][y] == 1:
+                                        moneyr +=100
+                                    else:
+                                        moneyb +=100
                                 else:
                                     datachange[i][y+1] +=1
                             else:
-                                datachange[i][y+1]= data[i][y]
+                                datachange[i][y+1]= dataprev[i][y]
+                                data[i][y+1]= dataprev[i][y]
                             check = False
-                    if y != 0 and check:
-                        if random.randint(0,1)==True and datachange[i][y-1]!= data[i][y]:
+                        if datachange[i][y+1]==datachange[i][y]:
+                            counter+=1
+                    else: counter+=1
+                    if y != 0 :
+                        if random.randint(0,1)==True and datachange[i][y-1]!= dataprev[i][y] and check:
                             if datachange[i][y-1]>=3 and datachange[i][y-1]!=6:
                                 if datachange[i][y-1]==7:
-                                    datachange[i][y-1]=data[i][y]
+                                    datachange[i][y-1]=dataprev[i][y]
+                                    data[i][y-1]= dataprev[i][y]
+                                    if dataprev[i][y] == 1:
+                                        moneyr +=100
+                                    else:
+                                        moneyb +=100
                                 else:
                                     datachange[i][y-1] +=1
                             else:
-                                datachange[i][y-1]= data[i][y]
+                                datachange[i][y-1]= dataprev[i][y]
+                                data[i][y-1]= dataprev[i][y]
                             check = False
+                        if datachange[i][y-1]==datachange[i][y]:
+                            counter+=1
+                    else: counter+=1
+                if counter == 4:
+                    data[i][y]=0
         whilecount+= 1
     def checa():
-        
         for y in range(0,spaces):
             if data[i][y]!= spaces:
                 if data[i][y]== data[i+1][y]:
                     data
-
-
-def player(a,b):
-    screen.blit(newPlayerImg,(a,b))
+def player(id,a,b):
+    screen.blit(sprites[id-1],(a,b))
 arr = []
 for i in range(0,spaces):
     arr.append(advanceMap(i))
@@ -185,11 +268,11 @@ pygame.font.init()
 myfont = pygame.font.SysFont('Comic Sans MS', 20)
 textsurface = myfont.render("Hello my name is minecraft steve", False, (250, 250, 250))
 while running:
+    data = copy.deepcopy(datachange)
+    dataprev = copy.deepcopy(data)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    data = copy.deepcopy(datachange)
-    
     if random.randint(0,1)==True:
         counta +=1
         for x in range(0,spaces):
@@ -206,15 +289,15 @@ while running:
     screen.fill((0,0,0))
     for i in range(0,spaces):
         for y in range(0,spaces):
-            if data[i][y] ==1:
+            if datachange[i][y] ==1:
                 contr += 1
-            elif data[i][y] == 2:
+            elif datachange[i][y] == 2:
                 contb += 1
             if datachange[i][y] !=0:
-                playerImg = pygame.image.load(pth+'\\assets\\'+str(datachange[i][y])+'.png')
-                newPlayerImg = pygame.transform.scale(playerImg,(sizex/spaces+1,sizey/spaces+1))
-                player(i*sizex/spaces,y*sizey/spaces)
+                player(datachange[i][y],i*sizex/spaces,y*sizey/spaces)
     #time.sleep(.1)
+    #for i in range(0,spaces):
+            #print(data[i])
     #print("a: "+str(counta)+" b: "+str(countb))
     if contr ==0 or contb ==0:
         if contr == 0:
@@ -223,14 +306,22 @@ while running:
             print("Red Wins")
         running = False
     if event.type == pygame.KEYDOWN:
-  
-            # Check for backspace
-            if event.key == pygame.K_BACKSPACE:
-                clearData()
-                screen.fill((0,0,0))
-    
-    textsurface = myfont.render("Red: "+str(contr)+" Blue: "+ str(contb), False, (250, 250, 250))       
+        # Check for backspace
+        if event.key == pygame.K_BACKSPACE:
+            clearData()
+            screen.fill((0,0,0))
+            moneyb, moneyr = 0 ,0
+        if event.key == pygame.K_KP_1:
+            if moneyr>=300:
+                #print("my boi")
+                moneyr -=300
+    moneyr +=3
+    moneyb +=3
+
+    textsurface = myfont.render(f"Red: {moneyr} Blue: {moneyb}", False, (250, 250, 250))       
     screen.blit(textsurface,(0,sizey+10))
+    if spaces<100:
+        time.sleep(0.1)
     pygame.display.update()
     
     

@@ -15,8 +15,6 @@ def generateMap():
     check = 0
     arr = [[0]*spaces for _ in range(spaces)]
     newseed = random.randrange(0,10000)
-    #newseed = 9567
-    #3print(newseed)    
     noise = perlin.perlin(newseed)
     noise.two_octave(1,1)
     noise = perlin.perlin(newseed)
@@ -24,15 +22,12 @@ def generateMap():
         return generateMap()
     for i in range(0,spaces):
         for y in range(0,spaces):
-            #print(noise.two(i,y))
-            #print(noise.two(i,y))
             if noise.two(i,y) >wallprob or noise.two(i,y) <-wallprob:
                 arr[i][y] = 1
             if noise.two(i,y)>wallprob*4 or noise.two(i,y) <-wallprob*4:
                 arr[i][y] = 7
                 check += 1
     if check < spaces*spaces/8:
-        print("not even close")
         return generateMap()
     return arr 
 #reloads the map and adds all the info into the data array        
@@ -68,14 +63,12 @@ def placeItem(number1,number2):
     value = 0
     check = False
     if number1 == 1:
-        print(contr/3000)
         value = contr
         for i in range(0,spaces):
             for y in range(0,spaces):
                 if data[i][y] == 1:  
                     if items[i][y] == 0:
                         if random.randint(0,value)<=1:
-                            print(contr,value)
                             items[i][y] = number2
                             check = True
                             break
@@ -93,15 +86,12 @@ def placeItem(number1,number2):
                 if data[i][y] == 2:
                     if items[i][y] == 0:
                         if random.randint(0,value)<=1:
-                            print(contb,value)
                             items[i][y] = number2
                             check = True
                             break
                         else:
-                            #print(contb,value)
                             value-=1
                     else:
-                        #print(contb,value)
                         value-=1
                 counter+=1
             if check:
@@ -109,7 +99,6 @@ def placeItem(number1,number2):
     if not check:
         placeItem(number1,number2)
 clearData()
-#print(noise_data)
 sizex,sizey, id,pth = 1000,1000, 1, os.path.dirname(__file__)
 screen = pygame.display.set_mode((sizex,sizey+50))
 #Title and Icon
@@ -132,9 +121,7 @@ class advanceMap(threading.Thread):
     def __init__(self,i):
         threading.Thread.__init__(self)
         self.m = i
-        #print(i)
     def run(self,j):
-        #print(i)
         i = self.m
         global spaces
         global moneyr
@@ -421,7 +408,6 @@ def menu():
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if input_rect.collidepoint(event.pos):
-                    print("wassap")
                     active = True
                 else:
                     active = False
@@ -437,8 +423,9 @@ def menu():
                             clearData()
                             setArr()
                     except:
-                        print("lol")
+                        print("bad data using previous value instead")
                     screen.fill((0,0,0))
+                    #resets money
                     moneyb, moneyr = 0 ,0
                 # Check for backspace
                 elif active: 
@@ -475,7 +462,7 @@ while running:
     screen.fill((0,0,0))
     #setters
     bankb,bankr,powerr,powerb,whilecount,contr,contb = 0,0,0,0,0,0,0
-    #prints all the new values that where generated
+    #displays all the new values that where generated
     for i in range(0,spaces):
         for y in range(0,spaces):
             #counts the amount of apearances of each team
@@ -483,7 +470,7 @@ while running:
                 contr += 1
             elif datachange[i][y] == 2:
                 contb += 1
-            #finds the changes and prints them on screen
+            #finds the changes and displays them on screen
             if datachange[i][y] !=0:
                 player(datachange[i][y],i*sizex/spaces,y*sizey/spaces)
                 if datachange[i][y] ==1:
@@ -516,25 +503,21 @@ while running:
             if event.key == pygame.K_a:
                 if moneyr>=10000:
                     #bank red
-                    print("bank red")
                     placeItem(1,1)
                     moneyr -=10000
             if event.key == pygame.K_s:
                 if moneyb>=5000:
                     #bank blue
-                    print("power red")
                     placeItem(1,2)
                     moneyb -=5000
             if event.key == pygame.K_k:
                 if moneyr>=10000:
                     #power red
-                    print("bank blue")
                     placeItem(2,1)
                     moneyr -=10000
             if event.key == pygame.K_l:
                 if moneyb>=5000:
                     #power blue
-                    print("power blue")
                     placeItem(2,2)
                     moneyb -=5000
             if event.key == pygame.K_ESCAPE:
